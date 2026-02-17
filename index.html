@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PBL Presentation | 2026</title>
+    <title>Neuro Codec | PBL 2026</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         body { background-color: #020617; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
@@ -14,16 +15,13 @@
         .gradient-text { background: linear-gradient(90deg,#60a5fa,#a855f7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
 
         #timerContainer { background:#ffffff; color:#020617; box-shadow:0 10px 40px rgba(0,0,0,0.8); border:3px solid #3b82f6; z-index:1000; }
-        @keyframes flicker {0%,100%{background-color:#ffffff;}50%{background-color:#fca5a5;}}
-        .timer-warning { animation:flicker 1s infinite; border:3px solid #ef4444 !important; color:#b91c1c !important;}
-        .timer-stop { background-color:#991b1b !important; color:#ffffff !important; border:3px solid #f87171 !important; animation:none;}
     </style>
 </head>
 
 <body onload="startTimer()">
 
 <div id="timerContainer" class="fixed bottom-10 right-10 px-8 py-4 rounded-3xl flex items-center gap-4 transition-all">
-    <i class="fas fa-hourglass-start text-blue-600 text-2xl" id="timerIcon"></i>
+    <i class="fas fa-hourglass-start text-blue-600 text-2xl"></i>
     <span id="displayTime" class="text-4xl font-black font-mono tracking-tighter">00:00</span>
 </div>
 
@@ -32,47 +30,44 @@
         <div class="bg-white p-1 rounded flex items-center justify-center shadow-md" style="height:48px;width:48px;">
             <img src="mujlogo.jpg" class="h-full w-auto object-contain">
         </div>
-        <div class="flex flex-col text-left">
-            <span class="text-xl font-black text-white uppercase tracking-tighter">PBL <span class="text-blue-500 italic">2026</span></span>
-            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">
-                Dept. of Computer Science & Engineering
+        <div>
+            <span class="text-xl font-black uppercase tracking-tighter">
+                PBL <span class="text-blue-500 italic">2026</span>
             </span>
+            <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                Dept. of Computer Science & Engineering
+            </div>
         </div>
-    </div>
-    <div class="hidden md:flex gap-8 text-[11px] uppercase tracking-widest font-bold opacity-70">
-        <a href="#problem" class="hover:text-blue-400 transition">Problem</a>
-        <a href="#methodology" class="hover:text-blue-400 transition">Methodology</a>
-        <a href="#results" class="hover:text-blue-400 transition">Results</a>
-        <a href="#team" class="hover:text-blue-400 transition">Team</a>
     </div>
 </nav>
 
 <main class="max-w-6xl mx-auto px-6 pt-48 pb-32 space-y-32">
 
+<!-- HERO -->
 <section class="text-center">
     <div class="inline-block px-4 py-1 border border-slate-800 rounded-full text-slate-500 text-[10px] font-mono mb-6 uppercase tracking-widest">
         ID: 23FE10CSE00573
     </div>
 
     <h1 class="text-6xl md:text-7xl font-extrabold mb-8 uppercase leading-tight">
-        <span class="gradient-text">NeuroCodec</span>
+        <span class="gradient-text">Neuro Codec</span>
     </h1>
 
     <p class="text-slate-400 max-w-2xl mx-auto italic text-lg leading-relaxed border-l-2 border-blue-500/30 pl-6 text-left">
-        "To develop a deep learning-based image compression system that learns optimal
-        entropy modeling using a hyperprior architecture and achieves better
-        rate–distortion performance than traditional codecs."
+        A hyperprior-based neural image compression system that learns compact
+        representations and optimizes rate–distortion performance.
     </p>
 </section>
 
+<!-- PROBLEM SECTION -->
 <section id="problem" class="grid md:grid-cols-2 gap-12 items-stretch">
-    <div class="glass p-10 rounded-[2.5rem] flex flex-col justify-center border-l-4 border-blue-600">
+    <div class="glass p-10 rounded-[2.5rem] border-l-4 border-blue-600">
         <h2 class="text-3xl font-extrabold mb-6">Problem Statement</h2>
         <p class="text-slate-400 leading-relaxed text-justify">
-            Traditional codecs like JPEG use fixed transforms and handcrafted entropy coding.
-            These methods cannot adapt dynamically to image content. With increasing demand
-            for high-resolution storage and bandwidth efficiency, intelligent compression
-            systems that learn compact representations directly from data are required.
+            Traditional codecs like JPEG rely on handcrafted transforms and static entropy coding.
+            These systems cannot adapt to image content dynamically. Neuro Codec aims to develop
+            a learned compression system that models latent probability distributions using
+            hyperpriors for improved compression efficiency.
         </p>
     </div>
 
@@ -82,9 +77,8 @@
                 Literature Review
             </h3>
             <p class="text-sm text-slate-500 italic">
-                Hyperprior-based neural compression (Ballé et al., 2018) demonstrates
-                improved entropy modeling and superior rate–distortion performance
-                compared to JPEG and JPEG2000.
+                Hyperprior-based neural compression (Ballé et al.) demonstrated superior
+                rate–distortion performance compared to traditional JPEG and JPEG2000.
             </p>
         </div>
 
@@ -93,25 +87,27 @@
                 Research Gap
             </h3>
             <p class="text-sm text-slate-500 italic">
-                Classical codecs use static probability models. Our hyperprior network
-                predicts latent mean and variance dynamically, improving compression efficiency.
+                Current implementation lacks full arithmetic entropy coding.
+                Incorporating learned entropy models can significantly reduce bitrate.
             </p>
         </div>
     </div>
 </section>
 
+<!-- METHODOLOGY -->
 <section id="methodology" class="space-y-12">
     <h2 class="text-4xl font-black text-center uppercase tracking-tight">
         System <span class="text-blue-500">Methodology</span>
     </h2>
 
     <div class="grid md:grid-cols-3 gap-8">
+
         <div class="glass p-8 rounded-3xl text-center">
             <i class="fas fa-database text-blue-500 text-3xl mb-4"></i>
             <h3 class="font-bold mb-2 uppercase text-xs tracking-widest">Dataset</h3>
             <p class="text-sm text-slate-500">
-                Custom image dataset • 192×192 resize • 128×128 crop •
-                Horizontal flip • 90/10 split
+                Custom dataset • 192×192 resize • 128×128 crop •
+                90/10 split • Data augmentation
             </p>
         </div>
 
@@ -119,13 +115,12 @@
             <i class="fas fa-microchip text-purple-500 text-3xl mb-4"></i>
             <h3 class="font-bold mb-2 uppercase text-xs tracking-widest">Architecture</h3>
             <p class="text-sm text-slate-500">
-                Analysis Transform • Hyper Encoder/Decoder •
-                Gaussian Likelihood • Synthesis Transform
+                Analysis Transform • Hyper Encoder • Gaussian Likelihood • Decoder
             </p>
         </div>
 
         <div class="glass p-8 rounded-3xl text-center border-2 border-green-500/20 bg-green-500/5">
-            <i class="fab fa-python text-green-500 text-3xl mb-4"></i>
+            <i class="fab fa-github text-green-500 text-3xl mb-4"></i>
             <h3 class="font-bold mb-4 uppercase text-xs tracking-widest text-green-400">
                 Implementation
             </h3>
@@ -135,41 +130,64 @@
                VIEW CODE
             </a>
         </div>
+
     </div>
 </section>
 
+<!-- RESULTS -->
 <section id="results" class="glass p-12 rounded-[3.5rem] border-t-4 border-blue-500">
     <h2 class="text-3xl font-black mb-12 text-center uppercase tracking-tight">
         Results & <span class="text-blue-500">Analysis</span>
     </h2>
 
     <div class="grid md:grid-cols-2 gap-16 items-center">
-        <div class="h-80"><canvas id="resultsChart"></canvas></div>
+
+        <div class="h-80">
+            <canvas id="resultsChart"></canvas>
+        </div>
 
         <div class="space-y-6">
-            <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
-                <span class="text-slate-400 text-xs uppercase tracking-widest">Overall Performance</span>
-                <span class="text-blue-400 font-mono font-black text-3xl block">91.7%</span>
+
+            <div class="p-6 rounded-2xl bg-white/5 border border-white/10 text-sm">
+                <p>Neural Codec (Naive Latent): 
+                    <span class="text-blue-400 font-black">3.0174 bpp</span></p>
+                <p>JPEG (Q=75): 
+                    <span class="text-purple-400 font-black">0.6252 bpp</span></p>
             </div>
 
-            <div class="grid grid-cols-3 gap-4">
-                <div class="text-center">
-                    <p class="text-xs text-slate-400">BPP</p>
-                    <p class="font-black text-blue-400">0.48</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-xs text-slate-400">PSNR</p>
-                    <p class="font-black text-purple-400">31.2 dB</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-xs text-slate-400">SSIM</p>
-                    <p class="font-black text-green-400">0.93</p>
-                </div>
+            <div class="p-6 rounded-2xl bg-white/5 border border-white/10 text-sm text-slate-400 leading-relaxed">
+                Although the current model does not outperform JPEG,
+                it successfully learns structured latent representations.
+                With larger training datasets, architectural tuning,
+                and integration of arithmetic entropy coding,
+                the compression efficiency can be significantly improved.
             </div>
+
         </div>
     </div>
+
+    <div class="mt-10 grid md:grid-cols-3 gap-6 text-center">
+
+        <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+            <p class="text-xs uppercase text-slate-400 mb-2">Latent Shape</p>
+            <p class="font-black text-blue-400">(1, 96, 198, 297)</p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+            <p class="text-xs uppercase text-slate-400 mb-2">Total Latent Values</p>
+            <p class="font-black text-purple-400">5,645,376</p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+            <p class="text-xs uppercase text-slate-400 mb-2">Validation Loss</p>
+            <p class="font-black text-green-400">0.0286</p>
+        </div>
+
+    </div>
+
 </section>
 
+<!-- TEAM -->
 <section id="team" class="text-center pt-10 border-t border-slate-900">
     <h2 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.5em] mb-12">
         Academic Credits
@@ -177,14 +195,24 @@
 
     <div class="flex flex-wrap justify-center gap-10">
         <div class="glass px-12 py-8 rounded-[2rem] border-b-4 border-blue-600">
-            <p class="text-[9px] font-bold text-blue-500 uppercase tracking-widest">Project Guide</p>
-            <p class="font-black text-xl text-slate-100">Dr. Arpita Baronia</p>
+            <p class="text-[9px] font-bold text-blue-500 uppercase tracking-widest">
+                Project Guide
+            </p>
+            <p class="font-black text-xl text-slate-100">
+                Dr. Arpita Baronia
+            </p>
         </div>
 
         <div class="glass px-12 py-8 rounded-[2rem] border-b-4 border-slate-700">
-            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Team Member</p>
-            <p class="font-black text-xl text-slate-100">Pragnay Upadhyay</p>
-            <p class="text-[10px] text-slate-500 mt-1">23FE10CSE00573</p>
+            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                Team Member
+            </p>
+            <p class="font-black text-xl text-slate-100">
+                Pragnay Upadhyay
+            </p>
+            <p class="text-[10px] text-slate-500 mt-1">
+                23FE10CSE00573
+            </p>
         </div>
     </div>
 </section>
@@ -201,7 +229,7 @@
 </footer>
 
 <script>
-let sec = 0;
+let sec=0;
 function startTimer(){
     setInterval(()=>{
         sec++;
@@ -216,12 +244,12 @@ const ctx=document.getElementById('resultsChart').getContext('2d');
 new Chart(ctx,{
     type:'bar',
     data:{
-        labels:['JPEG','Naive Prior','Hyperprior Model'],
+        labels:['Neural Codec','JPEG (Q=75)'],
         datasets:[{
-            data:[72,85,91.7],
-            backgroundColor:['#1e293b','#6366f1','#3b82f6'],
+            data:[3.0174,0.6252],
+            backgroundColor:['#3b82f6','#8b5cf6'],
             borderRadius:15,
-            barThickness:50
+            barThickness:60
         }]
     },
     options:{
@@ -229,8 +257,7 @@ new Chart(ctx,{
         maintainAspectRatio:false,
         plugins:{legend:{display:false}},
         scales:{
-            y:{beginAtZero:true},
-            x:{}
+            y:{beginAtZero:true}
         }
     }
 });

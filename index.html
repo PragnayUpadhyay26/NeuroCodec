@@ -7,215 +7,636 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body { background-color: #020617; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
-        .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); }
-        .gradient-text { background: linear-gradient(90deg,#60a5fa,#a855f7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        :root {
+            --bg: #020617;
+            --surface: rgba(255,255,255,0.03);
+            --border: rgba(255,255,255,0.08);
+            --blue: #3b82f6;
+            --purple: #a855f7;
+            --green: #22c55e;
+            --red: #ef4444;
+            --text: #f8fafc;
+            --muted: #64748b;
+        }
 
-        #timerContainer { background:#ffffff; color:#020617; box-shadow:0 10px 40px rgba(0,0,0,0.8); border:3px solid #3b82f6; z-index:1000; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Ambient glow blobs */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .blob-blue  { width: 600px; height: 600px; background: #3b82f6; top: -200px; left: -100px; }
+        .blob-purple{ width: 500px; height: 500px; background: #a855f7; bottom: 0; right: -100px; }
+
+        main, nav, footer, #timerContainer { position: relative; z-index: 1; }
+
+        /* Glass */
+        .glass {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+        }
+
+        /* Typography */
+        .display { font-family: 'Syne', sans-serif; }
+        .mono    { font-family: 'Space Mono', monospace; }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #a855f7 50%, #60a5fa 100%);
+            background-size: 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 4s linear infinite;
+        }
+        @keyframes shimmer { to { background-position: 200% center; } }
+
+        /* Timer */
+        #timerContainer {
+            background: #fff;
+            color: #020617;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 0 1px rgba(59,130,246,0.5);
+            z-index: 1000;
+        }
+
+        /* Fade in on load */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.7s ease forwards; opacity: 0; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.25s; }
+        .delay-3 { animation-delay: 0.4s; }
+        .delay-4 { animation-delay: 0.55s; }
+
+        /* Section divider */
+        .section-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.4em;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        /* Metric cards */
+        .metric-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 1.5rem 2rem;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .metric-card:hover { border-color: rgba(59,130,246,0.4); transform: translateY(-2px); }
+
+        /* Comparison table */
+        .compare-row { border-bottom: 1px solid var(--border); }
+        .compare-row:last-child { border-bottom: none; }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .badge-blue   { background: rgba(59,130,246,0.15);  color: #60a5fa;  border: 1px solid rgba(59,130,246,0.3); }
+        .badge-green  { background: rgba(34,197,94,0.12);   color: #4ade80;  border: 1px solid rgba(34,197,94,0.3); }
+        .badge-red    { background: rgba(239,68,68,0.12);   color: #f87171;  border: 1px solid rgba(239,68,68,0.3); }
+        .badge-purple { background: rgba(168,85,247,0.12);  color: #c084fc;  border: 1px solid rgba(168,85,247,0.3); }
+
+        /* Pipeline flow */
+        .pipe-arrow {
+            color: var(--muted);
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        /* Scroll indicator */
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, rgba(59,130,246,0.6), transparent);
+            margin: 0 auto;
+        }
+
+        /* Chart container */
+        .chart-wrap {
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+        }
     </style>
 </head>
 
 <body onload="startTimer()">
 
-<div id="timerContainer" class="fixed bottom-10 right-10 px-8 py-4 rounded-3xl flex items-center gap-4 transition-all">
-    <i class="fas fa-hourglass-start text-blue-600 text-2xl"></i>
-    <span id="displayTime" class="text-4xl font-black font-mono tracking-tighter">00:00</span>
+<!-- Ambient blobs -->
+<div class="blob blob-blue"></div>
+<div class="blob blob-purple"></div>
+
+<!-- Timer -->
+<div id="timerContainer" class="fixed bottom-8 right-8 px-6 py-3 rounded-2xl flex items-center gap-3">
+    <i class="fas fa-hourglass-half text-blue-600 text-lg"></i>
+    <span id="displayTime" class="text-3xl font-black mono tracking-tighter">00:00</span>
 </div>
 
+<!-- Nav -->
 <nav class="fixed w-full z-50 glass border-b border-slate-800/50 px-8 py-4 flex justify-between items-center">
     <div class="flex items-center gap-4">
-        <div class="bg-white p-1 rounded flex items-center justify-center shadow-md" style="height:48px;width:48px;">
+        <div class="bg-white rounded-lg flex items-center justify-center shadow" style="height:40px;width:40px;padding:4px;">
             <img src="mujlogo.jpg" class="h-full w-auto object-contain">
         </div>
         <div>
-            <span class="text-xl font-black uppercase tracking-tighter">
-                PBL <span class="text-blue-500 italic">2026</span>
-            </span>
-            <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+            <div class="display font-black text-base uppercase tracking-tighter">
+                PBL <span class="text-blue-500">2026</span>
+            </div>
+            <div class="section-label" style="letter-spacing:0.3em;font-size:8px;">
                 Dept. of Computer Science & Engineering
             </div>
         </div>
     </div>
+    <div class="hidden md:flex items-center gap-6 text-xs text-slate-500 mono">
+        <a href="#problem"     class="hover:text-blue-400 transition">Problem</a>
+        <a href="#methodology" class="hover:text-blue-400 transition">Method</a>
+        <a href="#results"     class="hover:text-blue-400 transition">Results</a>
+        <a href="#improvements"class="hover:text-blue-400 transition">Improvements</a>
+        <a href="#team"        class="hover:text-blue-400 transition">Team</a>
+    </div>
 </nav>
 
-<main class="max-w-6xl mx-auto px-6 pt-48 pb-32 space-y-32">
+<main class="max-w-6xl mx-auto px-6 pt-44 pb-32 space-y-40">
 
-<!-- HERO -->
-<section class="text-center">
-    <div class="inline-block px-4 py-1 border border-slate-800 rounded-full text-slate-500 text-[10px] font-mono mb-6 uppercase tracking-widest">
-        ID: 23FE10CSE00573
-    </div>
+    <!-- ── HERO ─────────────────────────────────────────────── -->
+    <section class="text-center space-y-8">
+        <div class="fade-up delay-1">
+            <span class="badge badge-blue mono">ID: 23FE10CSE00573</span>
+        </div>
 
-    <h1 class="text-6xl md:text-7xl font-extrabold mb-8 uppercase leading-tight">
-        <span class="gradient-text">Neuro Codec</span>
-    </h1>
+        <div class="fade-up delay-2">
+            <h1 class="display text-7xl md:text-8xl font-black uppercase leading-none tracking-tighter">
+                <span class="gradient-text">Neuro</span><br>
+                <span class="text-slate-100">Codec</span>
+            </h1>
+        </div>
 
-    <p class="text-slate-400 max-w-2xl mx-auto italic text-lg leading-relaxed border-l-2 border-blue-500/30 pl-6 text-left">
-        A hyperprior-based neural image compression system that learns compact
-        representations and optimizes rate–distortion performance.
-    </p>
-</section>
-
-<!-- PROBLEM SECTION -->
-<section id="problem" class="grid md:grid-cols-2 gap-12 items-stretch">
-    <div class="glass p-10 rounded-[2.5rem] border-l-4 border-blue-600">
-        <h2 class="text-3xl font-extrabold mb-6">Problem Statement</h2>
-        <p class="text-slate-400 leading-relaxed text-justify">
-            Traditional codecs like JPEG rely on handcrafted transforms and static entropy coding.
-            These systems cannot adapt to image content dynamically. Neuro Codec aims to develop
-            a learned compression system that models latent probability distributions using
-            hyperpriors for improved compression efficiency.
-        </p>
-    </div>
-
-    <div class="space-y-6">
-        <div class="glass p-7 rounded-3xl border-r-4 border-blue-500/50">
-            <h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-2">
-                Literature Review
-            </h3>
-            <p class="text-sm text-slate-500 italic">
-                Hyperprior-based neural compression (Ballé et al.) demonstrated superior
-                rate–distortion performance compared to traditional JPEG and JPEG2000.
+        <div class="fade-up delay-3 max-w-2xl mx-auto">
+            <p class="text-slate-400 text-lg leading-relaxed">
+                A hyperprior-based learned image compression system trained to
+                optimise <span class="text-blue-400 font-medium">rate–distortion</span> performance
+                beyond traditional JPEG.
             </p>
         </div>
 
-        <div class="glass p-7 rounded-3xl border-r-4 border-purple-500/50">
-            <h3 class="text-purple-400 font-bold text-xs uppercase tracking-widest mb-2">
-                Research Gap
-            </h3>
-            <p class="text-sm text-slate-500 italic">
-                Current implementation lacks full arithmetic entropy coding.
-                Incorporating learned entropy models can significantly reduce bitrate.
-            </p>
-        </div>
-    </div>
-</section>
-
-<!-- METHODOLOGY -->
-<section id="methodology" class="space-y-12">
-    <h2 class="text-4xl font-black text-center uppercase tracking-tight">
-        System <span class="text-blue-500">Methodology</span>
-    </h2>
-
-    <div class="grid md:grid-cols-3 gap-8">
-
-        <div class="glass p-8 rounded-3xl text-center">
-            <i class="fas fa-database text-blue-500 text-3xl mb-4"></i>
-            <h3 class="font-bold mb-2 uppercase text-xs tracking-widest">Dataset</h3>
-            <p class="text-sm text-slate-500">
-                Custom dataset • 192×192 resize • 128×128 crop •
-                90/10 split • Data augmentation
-            </p>
+        <div class="fade-up delay-4 flex flex-wrap justify-center gap-3 text-xs">
+            <span class="badge badge-blue">PyTorch</span>
+            <span class="badge badge-purple">CompressAI</span>
+            <span class="badge badge-green">GDN / IGDN</span>
+            <span class="badge badge-blue">MS-SSIM Loss</span>
+            <span class="badge badge-purple">Kodak Benchmark</span>
         </div>
 
-        <div class="glass p-8 rounded-3xl text-center">
-            <i class="fas fa-microchip text-purple-500 text-3xl mb-4"></i>
-            <h3 class="font-bold mb-2 uppercase text-xs tracking-widest">Architecture</h3>
-            <p class="text-sm text-slate-500">
-                Analysis Transform • Hyper Encoder • Gaussian Likelihood • Decoder
-            </p>
+        <div class="scroll-line mt-12 fade-up delay-4"></div>
+    </section>
+
+    <!-- ── PROBLEM ───────────────────────────────────────────── -->
+    <section id="problem" class="space-y-10">
+        <div class="text-center space-y-2">
+            <div class="section-label">01 — Problem</div>
+            <h2 class="display text-4xl font-black uppercase tracking-tight">
+                Why <span class="text-blue-500">JPEG</span> isn't enough
+            </h2>
         </div>
 
-        <div class="glass p-8 rounded-3xl text-center border-2 border-green-500/20 bg-green-500/5">
-            <i class="fab fa-github text-green-500 text-3xl mb-4"></i>
-            <h3 class="font-bold mb-4 uppercase text-xs tracking-widest text-green-400">
-                Implementation
-            </h3>
-            <a href="https://github.com/PragnayUpadhyay26/NeuroCodec"
-               target="_blank"
-               class="px-6 py-2 bg-green-600 rounded-full text-[10px] font-black hover:bg-green-500 transition">
-               VIEW CODE
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="glass p-8 rounded-3xl border-t-2 border-blue-600/50 space-y-4">
+                <i class="fas fa-exclamation-triangle text-blue-500 text-2xl"></i>
+                <h3 class="display font-black text-sm uppercase tracking-widest">Static Transforms</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    JPEG uses fixed DCT — it cannot adapt its transform to image content.
+                    High-frequency textures and complex scenes are poorly represented.
+                </p>
+            </div>
+
+            <div class="glass p-8 rounded-3xl border-t-2 border-purple-600/50 space-y-4">
+                <i class="fas fa-chess-board text-purple-500 text-2xl"></i>
+                <h3 class="display font-black text-sm uppercase tracking-widest">Block Artefacts</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    8×8 block processing introduces visible ringing and blocking at
+                    low bitrates — a fundamental limitation of the DCT approach.
+                </p>
+            </div>
+
+            <div class="glass p-8 rounded-3xl border-t-2 border-green-600/50 space-y-4">
+                <i class="fas fa-brain text-green-500 text-2xl"></i>
+                <h3 class="display font-black text-sm uppercase tracking-widest">Neural Solution</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    Learned codecs use end-to-end optimised transforms and
+                    adaptive entropy models — the same bitrate, higher quality.
+                </p>
+            </div>
+        </div>
+
+        <div class="glass p-8 rounded-3xl grid md:grid-cols-2 gap-8 items-center border-l-4 border-blue-600">
+            <div>
+                <div class="section-label mb-3">Literature Foundation</div>
+                <p class="text-slate-300 leading-relaxed">
+                    Based on <span class="text-blue-400 font-medium">Ballé et al. (2018)</span> — "Variational image compression
+                    with a scale hyperprior" — which demonstrated that hyperprior-based
+                    neural codecs consistently outperform JPEG on the Kodak benchmark
+                    at low-to-mid bitrates.
+                </p>
+            </div>
+            <div class="space-y-3">
+                <div class="glass p-4 rounded-2xl border-r-2 border-purple-500/50">
+                    <div class="section-label mb-1">Research Gap Addressed</div>
+                    <p class="text-slate-500 text-sm">
+                        Replaced fixed N(0,1) prior with learned
+                        <span class="text-purple-400">EntropyBottleneck</span> +
+                        <span class="text-purple-400">GaussianConditional</span>
+                        for accurate rate estimation.
+                    </p>
+                </div>
+                <div class="glass p-4 rounded-2xl border-r-2 border-blue-500/50">
+                    <div class="section-label mb-1">Benchmark</div>
+                    <p class="text-slate-500 text-sm">
+                        Evaluated on the standard <span class="text-blue-400">Kodak 24-image</span> dataset —
+                        the same benchmark used in all published neural codec papers.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── METHODOLOGY ───────────────────────────────────────── -->
+    <section id="methodology" class="space-y-10">
+        <div class="text-center space-y-2">
+            <div class="section-label">02 — Methodology</div>
+            <h2 class="display text-4xl font-black uppercase tracking-tight">
+                System <span class="text-blue-500">Architecture</span>
+            </h2>
+        </div>
+
+        <!-- Pipeline flow -->
+        <div class="glass p-8 rounded-3xl space-y-6">
+            <div class="section-label text-center mb-2">End-to-End Pipeline</div>
+            <div class="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+                <!-- Each block -->
+                <div class="text-center space-y-2">
+                    <div class="w-28 glass p-3 rounded-2xl border border-blue-500/30 text-xs font-bold text-blue-400 mono">Input x</div>
+                    <div class="text-[9px] text-slate-600 mono">RGB Image</div>
+                </div>
+                <div class="pipe-arrow">→</div>
+                <div class="text-center space-y-2">
+                    <div class="w-32 glass p-3 rounded-2xl border border-blue-500/50 text-xs font-bold text-blue-300 mono">g_a (Analysis)</div>
+                    <div class="text-[9px] text-slate-600 mono">4× stride-2 conv<br>GDN activation</div>
+                </div>
+                <div class="pipe-arrow">→</div>
+                <div class="text-center space-y-2">
+                    <div class="w-28 glass p-3 rounded-2xl border border-purple-500/50 text-xs font-bold text-purple-300 mono">Latent y</div>
+                    <div class="text-[9px] text-slate-600 mono">192 channels<br>/16 resolution</div>
+                </div>
+                <div class="pipe-arrow">→</div>
+                <div class="text-center space-y-2">
+                    <div class="w-32 glass p-3 rounded-2xl border border-purple-500/30 text-xs font-bold text-purple-400 mono">h_a / h_s (Hyper)</div>
+                    <div class="text-[9px] text-slate-600 mono">μ, σ prediction<br>128 channels</div>
+                </div>
+                <div class="pipe-arrow">→</div>
+                <div class="text-center space-y-2">
+                    <div class="w-32 glass p-3 rounded-2xl border border-green-500/50 text-xs font-bold text-green-300 mono">Quantise ŷ</div>
+                    <div class="text-[9px] text-slate-600 mono">GaussianCond<br>EntropyBN</div>
+                </div>
+                <div class="pipe-arrow">→</div>
+                <div class="text-center space-y-2">
+                    <div class="w-32 glass p-3 rounded-2xl border border-blue-500/50 text-xs font-bold text-blue-300 mono">g_s (Synthesis)</div>
+                    <div class="text-[9px] text-slate-600 mono">IGDN + ResBlocks<br>4× upsample</div>
+                </div>
+                <div class="pipe-arrow">→</div>
+                <div class="text-center space-y-2">
+                    <div class="w-28 glass p-3 rounded-2xl border border-green-500/30 text-xs font-bold text-green-400 mono">Output x̂</div>
+                    <div class="text-[9px] text-slate-600 mono">Reconstructed</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture comparison -->
+        <div class="glass p-8 rounded-3xl space-y-4">
+            <div class="section-label mb-4">Architecture Improvements Over Baseline</div>
+
+            <div class="grid grid-cols-3 gap-4 text-xs mono text-center mb-4">
+                <div class="text-slate-500 uppercase tracking-widest">Component</div>
+                <div class="text-red-400 uppercase tracking-widest">Original</div>
+                <div class="text-green-400 uppercase tracking-widest">Improved</div>
+            </div>
+
+            <!-- rows -->
+            <div id="compareTable" class="space-y-0 divide-y divide-white/5 text-sm">
+            </div>
+        </div>
+
+        <!-- Loss function -->
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="glass p-7 rounded-3xl space-y-3 border-b-2 border-blue-500/40">
+                <div class="section-label">Loss Function</div>
+                <div class="mono text-blue-300 text-sm bg-black/30 rounded-xl p-4 leading-loose">
+                    L = D + λ · R<br>
+                    <span class="text-slate-500 text-xs">D = 0.8 · (1−MS-SSIM) + 0.2 · L1</span><br>
+                    <span class="text-slate-500 text-xs">R = R_y + R_z  (bits per pixel)</span><br>
+                    <span class="text-slate-500 text-xs">λ = 0.02</span>
+                </div>
+                <p class="text-slate-500 text-xs">MS-SSIM preserves perceptual structure and edges. L1 maintains pixel-level accuracy.</p>
+            </div>
+
+            <div class="glass p-7 rounded-3xl space-y-3 border-b-2 border-purple-500/40">
+                <div class="section-label">Training Setup</div>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between py-2 border-b border-white/5">
+                        <span class="text-slate-500">Hardware</span>
+                        <span class="text-slate-200 mono">RTX 3050</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-white/5">
+                        <span class="text-slate-500">Patch size</span>
+                        <span class="text-slate-200 mono">128 × 128</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-white/5">
+                        <span class="text-slate-500">Batch size</span>
+                        <span class="text-slate-200 mono">32</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-white/5">
+                        <span class="text-slate-500">Optimiser</span>
+                        <span class="text-slate-200 mono">Adam  lr=1e-4</span>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <span class="text-slate-500">LR schedule</span>
+                        <span class="text-slate-200 mono">ReduceLROnPlateau</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GitHub -->
+        <div class="glass p-7 rounded-3xl border border-green-500/20 bg-green-500/5 flex items-center justify-between">
+            <div class="space-y-1">
+                <div class="section-label text-green-600">Source Code</div>
+                <p class="font-bold text-green-400">github.com/PragnayUpadhyay26/NeuroCodec</p>
+            </div>
+            <a href="https://github.com/PragnayUpadhyay26/NeuroCodec" target="_blank"
+               class="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-500 rounded-2xl text-xs font-black mono uppercase tracking-widest transition">
+                <i class="fab fa-github"></i> View Code
             </a>
         </div>
+    </section>
 
-    </div>
-</section>
-
-<!-- RESULTS -->
-<section id="results" class="glass p-12 rounded-[3.5rem] border-t-4 border-blue-500">
-    <h2 class="text-3xl font-black mb-12 text-center uppercase tracking-tight">
-        Results & <span class="text-blue-500">Analysis</span>
-    </h2>
-
-    <div class="grid md:grid-cols-2 gap-16 items-center">
-
-        <div class="h-80">
-            <canvas id="resultsChart"></canvas>
+    <!-- ── RESULTS ────────────────────────────────────────────── -->
+    <section id="results" class="space-y-10">
+        <div class="text-center space-y-2">
+            <div class="section-label">03 — Results</div>
+            <h2 class="display text-4xl font-black uppercase tracking-tight">
+                Kodak <span class="text-blue-500">Benchmark</span>
+            </h2>
+            <p class="text-slate-500 text-sm max-w-xl mx-auto">
+                24-image standard benchmark used in all published neural codec papers.
+                Results are averaged across all images.
+            </p>
         </div>
 
-        <div class="space-y-6">
+        <!-- Key metrics -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="metric-card text-center">
+                <div class="section-label mb-2">Neural bpp</div>
+                <div class="display text-3xl font-black text-blue-400">0.54</div>
+                <div class="text-slate-600 text-xs mono mt-1">bits per pixel</div>
+            </div>
+            <div class="metric-card text-center">
+                <div class="section-label mb-2">Neural PSNR</div>
+                <div class="display text-3xl font-black text-blue-400">27.95<span class="text-sm text-slate-500"> dB</span></div>
+                <div class="text-slate-600 text-xs mono mt-1">avg. Kodak</div>
+            </div>
+            <div class="metric-card text-center">
+                <div class="section-label mb-2">JPEG Q=20</div>
+                <div class="display text-3xl font-black text-orange-400">29.14<span class="text-sm text-slate-500"> dB</span></div>
+                <div class="text-slate-600 text-xs mono mt-1">at 0.51 bpp</div>
+            </div>
+            <div class="metric-card text-center border-yellow-500/20">
+                <div class="section-label mb-2">Gap to JPEG</div>
+                <div class="display text-3xl font-black text-yellow-400">−1.2<span class="text-sm text-slate-500"> dB</span></div>
+                <div class="text-slate-600 text-xs mono mt-1">at matched bpp</div>
+            </div>
+        </div>
 
-            <div class="p-6 rounded-2xl bg-white/5 border border-white/10 text-sm">
-                <p>Neural Codec (Naive Latent): 
-                    <span class="text-blue-400 font-black">3.0174 bpp</span></p>
-                <p>JPEG (Q=75): 
-                    <span class="text-purple-400 font-black">0.6252 bpp</span></p>
+        <!-- RD Chart -->
+        <div class="glass p-8 rounded-3xl space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="section-label">Rate–Distortion Curve</div>
+                    <p class="text-slate-400 text-sm mt-1">PSNR vs bpp — higher and left is better</p>
+                </div>
+                <div class="flex gap-4 text-xs mono items-center">
+                    <span class="flex items-center gap-2"><span class="inline-block w-8 h-0.5 bg-orange-400"></span> JPEG</span>
+                    <span class="flex items-center gap-2"><span class="text-blue-400 text-lg">★</span> Neural Codec</span>
+                </div>
+            </div>
+            <div class="chart-wrap" style="height:340px;">
+                <canvas id="rdChart"></canvas>
+            </div>
+            <p class="text-slate-600 text-xs mono text-center">
+                Star position shows neural codec at 0.54 bpp / 27.95 dB — 1.2 dB behind JPEG Q=20 at matched bitrate
+            </p>
+        </div>
+
+        <!-- Per-image table (top 6 + bottom 2) -->
+        <div class="glass p-8 rounded-3xl space-y-4">
+            <div class="section-label mb-4">Per-Image Results (Kodak 24)</div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm mono">
+                    <thead>
+                        <tr class="text-slate-500 text-xs border-b border-white/10">
+                            <th class="text-left py-3 pr-4">Image</th>
+                            <th class="text-right py-3 pr-4">Neural bpp</th>
+                            <th class="text-right py-3">Neural PSNR</th>
+                            <th class="text-right py-3 pl-4">vs JPEG Q=20</th>
+                        </tr>
+                    </thead>
+                    <tbody id="perImageTable" class="divide-y divide-white/5 text-slate-400">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analysis -->
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="glass p-7 rounded-3xl border-l-4 border-yellow-500/50 space-y-3">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-chart-line text-yellow-500"></i>
+                    <span class="display font-black text-sm uppercase tracking-widest">Current Gap Analysis</span>
+                </div>
+                <ul class="text-slate-500 text-sm space-y-2 leading-relaxed">
+                    <li>• 1.2 dB behind JPEG at matched ~0.5 bpp</li>
+                    <li>• High per-image variance (22.7–31.2 dB) indicates entropy model under-fitted</li>
+                    <li>• Model trained on personal photos (~30 images) — data-limited</li>
+                    <li>• Single λ point; no full RD curve yet</li>
+                </ul>
             </div>
 
-            <div class="p-6 rounded-2xl bg-white/5 border border-white/10 text-sm text-slate-400 leading-relaxed">
-                Although the current model does not outperform JPEG,
-                it successfully learns structured latent representations.
-                With larger training datasets, architectural tuning,
-                and integration of arithmetic entropy coding,
-                the compression efficiency can be significantly improved.
+            <div class="glass p-7 rounded-3xl border-l-4 border-green-500/50 space-y-3">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-arrow-trend-up text-green-500"></i>
+                    <span class="display font-black text-sm uppercase tracking-widest">Why the Gap Closes</span>
+                </div>
+                <ul class="text-slate-500 text-sm space-y-2 leading-relaxed">
+                    <li>• <span class="text-green-400">DIV2K + Flickr2K</span> (3,450 images) training in progress</li>
+                    <li>• Ballé 2018 (same architecture) sits <span class="text-green-400">+1–2 dB above JPEG</span> on Kodak</li>
+                    <li>• Mixed precision + larger patches will stabilise entropy model</li>
+                    <li>• Multiple λ values will produce a full RD curve above JPEG</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── IMPROVEMENTS ──────────────────────────────────────── -->
+    <section id="improvements" class="space-y-10">
+        <div class="text-center space-y-2">
+            <div class="section-label">04 — Contributions</div>
+            <h2 class="display text-4xl font-black uppercase tracking-tight">
+                Key <span class="text-blue-500">Improvements</span>
+            </h2>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+            <div class="glass p-8 rounded-3xl space-y-4 border-t-2 border-blue-500/40">
+                <div class="flex items-start gap-4">
+                    <span class="display text-4xl font-black text-blue-500/30">01</span>
+                    <div>
+                        <h3 class="display font-black text-base uppercase tracking-wide mb-2">GDN / IGDN Activations</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            Replaced ReLU with Generalised Divisive Normalisation — designed specifically
+                            for image statistics. Decorrelates latent channels better than ReLU,
+                            directly improving entropy coding efficiency.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass p-8 rounded-3xl space-y-4 border-t-2 border-purple-500/40">
+                <div class="flex items-start gap-4">
+                    <span class="display text-4xl font-black text-purple-500/30">02</span>
+                    <div>
+                        <h3 class="display font-black text-base uppercase tracking-wide mb-2">Learned Entropy Models</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            Replaced fixed N(0,1) prior with CompressAI's
+                            <span class="text-purple-400 mono">EntropyBottleneck</span> and
+                            <span class="text-purple-400 mono">GaussianConditional</span>.
+                            Rate estimation is now accurate and differentiable end-to-end.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass p-8 rounded-3xl space-y-4 border-t-2 border-green-500/40">
+                <div class="flex items-start gap-4">
+                    <span class="display text-4xl font-black text-green-500/30">03</span>
+                    <div>
+                        <h3 class="display font-black text-base uppercase tracking-wide mb-2">MS-SSIM Perceptual Loss</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            L1 loss produces blurry reconstructions — JPEG looks sharper because DCT
+                            preserves structure. MS-SSIM targets edges and textures directly,
+                            producing perceptually superior output at the same bpp.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass p-8 rounded-3xl space-y-4 border-t-2 border-yellow-500/40">
+                <div class="flex items-start gap-4">
+                    <span class="display text-4xl font-black text-yellow-500/30">04</span>
+                    <div>
+                        <h3 class="display font-black text-base uppercase tracking-wide mb-2">Residual Decoder + Wider Channels</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            Added ResBlocks in the synthesis transform for better gradient flow.
+                            Increased channels from 64–96 to 128/192 — more capacity to represent
+                            fine-grained image detail.
+                        </p>
+                    </div>
+                </div>
             </div>
 
         </div>
-    </div>
 
-    <div class="mt-10 grid md:grid-cols-3 gap-6 text-center">
-
-        <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
-            <p class="text-xs uppercase text-slate-400 mb-2">Latent Shape</p>
-            <p class="font-black text-blue-400">(1, 96, 198, 297)</p>
+        <!-- Next steps -->
+        <div class="glass p-8 rounded-3xl border border-blue-500/20 bg-blue-500/5 space-y-4">
+            <div class="section-label">Future Work</div>
+            <div class="grid md:grid-cols-3 gap-6 text-sm text-slate-400">
+                <div class="space-y-2">
+                    <i class="fas fa-database text-blue-400 mb-2 block"></i>
+                    <p class="font-medium text-slate-300">Larger Dataset</p>
+                    <p>Train on DIV2K + Flickr2K (3,450 images) to match published results and close the JPEG gap.</p>
+                </div>
+                <div class="space-y-2">
+                    <i class="fas fa-layer-group text-purple-400 mb-2 block"></i>
+                    <p class="font-medium text-slate-300">Multi-λ RD Curve</p>
+                    <p>Train 5 models at λ ∈ {0.001, 0.004, 0.016, 0.04, 0.08} to generate a full curve above JPEG.</p>
+                </div>
+                <div class="space-y-2">
+                    <i class="fas fa-eye text-green-400 mb-2 block"></i>
+                    <p class="font-medium text-slate-300">Attention Mechanism</p>
+                    <p>Add a self-attention layer at the bottleneck — Cheng et al. 2020 shows +0.5–1 dB gain on Kodak.</p>
+                </div>
+            </div>
         </div>
+    </section>
 
-        <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
-            <p class="text-xs uppercase text-slate-400 mb-2">Total Latent Values</p>
-            <p class="font-black text-purple-400">5,645,376</p>
+    <!-- ── TEAM ───────────────────────────────────────────────── -->
+    <section id="team" class="text-center space-y-12 pt-10 border-t border-slate-900">
+        <div class="section-label tracking-widest">Academic Credits</div>
+
+        <div class="flex flex-wrap justify-center gap-8">
+            <div class="glass px-12 py-8 rounded-[2rem] border-b-4 border-blue-600 space-y-2">
+                <div class="section-label text-blue-500">Project Guide</div>
+                <div class="display font-black text-2xl">Dr. Arpita Baronia</div>
+            </div>
+
+            <div class="glass px-12 py-8 rounded-[2rem] border-b-4 border-slate-700 space-y-2">
+                <div class="section-label">Team Member</div>
+                <div class="display font-black text-2xl">Pragnay Upadhyay</div>
+                <div class="mono text-slate-500 text-xs">23FE10CSE00573</div>
+            </div>
         </div>
-
-        <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
-            <p class="text-xs uppercase text-slate-400 mb-2">Validation Loss</p>
-            <p class="font-black text-green-400">0.0286</p>
-        </div>
-
-    </div>
-
-</section>
-
-<!-- TEAM -->
-<section id="team" class="text-center pt-10 border-t border-slate-900">
-    <h2 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.5em] mb-12">
-        Academic Credits
-    </h2>
-
-    <div class="flex flex-wrap justify-center gap-10">
-        <div class="glass px-12 py-8 rounded-[2rem] border-b-4 border-blue-600">
-            <p class="text-[9px] font-bold text-blue-500 uppercase tracking-widest">
-                Project Guide
-            </p>
-            <p class="font-black text-xl text-slate-100">
-                Dr. Arpita Baronia
-            </p>
-        </div>
-
-        <div class="glass px-12 py-8 rounded-[2rem] border-b-4 border-slate-700">
-            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                Team Member
-            </p>
-            <p class="font-black text-xl text-slate-100">
-                Pragnay Upadhyay
-            </p>
-            <p class="text-[10px] text-slate-500 mt-1">
-                23FE10CSE00573
-            </p>
-        </div>
-    </div>
-</section>
+    </section>
 
 </main>
 
@@ -223,44 +644,158 @@
     <p class="text-slate-600 text-[10px] font-bold tracking-[0.3em] uppercase mb-2">
         Manipal University Jaipur
     </p>
-    <p class="text-slate-500 text-[9px] font-medium tracking-[0.2em] uppercase opacity-50">
-        Department of Computer Science & Engineering • 2026
+    <p class="text-slate-500 text-[9px] tracking-[0.2em] uppercase opacity-50">
+        Department of Computer Science & Engineering · 2026
     </p>
 </footer>
 
 <script>
-let sec=0;
-function startTimer(){
-    setInterval(()=>{
+// ── Timer ──────────────────────────────────────────────────────
+let sec = 0;
+function startTimer() {
+    setInterval(() => {
         sec++;
-        let m=Math.floor(sec/60);
-        let s=sec%60;
-        document.getElementById('displayTime').innerText=
-        `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-    },1000);
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        document.getElementById('displayTime').textContent = `${m}:${s}`;
+    }, 1000);
 }
 
-const ctx=document.getElementById('resultsChart').getContext('2d');
-new Chart(ctx,{
-    type:'bar',
-    data:{
-        labels:['Neural Codec','JPEG (Q=75)'],
-        datasets:[{
-            data:[3.0174,0.6252],
-            backgroundColor:['#3b82f6','#8b5cf6'],
-            borderRadius:15,
-            barThickness:60
-        }]
+// ── Architecture comparison table ─────────────────────────────
+const compareData = [
+    ['Channels (main)',   '64–96',          '128',              false],
+    ['Latent channels',   '96',             '192',              false],
+    ['Activations',       'ReLU',           'GDN / IGDN',       false],
+    ['Residual blocks',   '✗ None',         '✓ In decoder',     false],
+    ['Distortion loss',   'L1',             'MS-SSIM + L1',     false],
+    ['Entropy model z',   'Fixed N(0,1)',   'Learned (EB)',      false],
+    ['Entropy model y',   'Gaussian approx','GaussianCond',     false],
+    ['LR schedule',       'None',           'ReduceLROnPlateau', false],
+    ['Mixed precision',   '✗ No',           '✓ AMP',            false],
+    ['Parameters',        '~1.2 M',         '~5.8 M',           false],
+];
+
+const tbody = document.getElementById('compareTable');
+compareData.forEach(([label, orig, imp]) => {
+    tbody.innerHTML += `
+        <div class="compare-row grid grid-cols-3 gap-4 py-3 text-xs">
+            <span class="text-slate-500 mono">${label}</span>
+            <span class="text-red-400 mono">${orig}</span>
+            <span class="text-green-400 mono font-bold">${imp}</span>
+        </div>`;
+});
+
+// ── RD Chart ──────────────────────────────────────────────────
+const jpegBpp   = [0.3266, 0.5083, 0.6598, 0.7856, 0.9055, 1.0366, 1.2388, 1.3676, 1.5702, 1.8565, 2.3463, 3.3919];
+const jpegPsnr  = [26.67,  29.14,  30.49,  31.42,  32.17,  32.91,  33.92,  34.52,  35.37,  36.46,  38.03,  40.56];
+
+const ctx = document.getElementById('rdChart').getContext('2d');
+new Chart(ctx, {
+    type: 'scatter',
+    data: {
+        datasets: [
+            {
+                label: 'JPEG',
+                data: jpegBpp.map((b, i) => ({ x: b, y: jpegPsnr[i] })),
+                borderColor: '#f97316',
+                backgroundColor: '#f97316',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                showLine: true,
+                fill: false,
+                tension: 0.3,
+                borderWidth: 2,
+            },
+            {
+                label: 'Neural Codec',
+                data: [{ x: 0.5408, y: 27.95 }],
+                backgroundColor: '#3b82f6',
+                pointRadius: 12,
+                pointStyle: 'star',
+                pointHoverRadius: 15,
+            }
+        ]
     },
-    options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{legend:{display:false}},
-        scales:{
-            y:{beginAtZero:true}
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: ctx => `${ctx.dataset.label}: ${ctx.parsed.x.toFixed(2)} bpp / ${ctx.parsed.y.toFixed(2)} dB`
+                }
+            }
+        },
+        scales: {
+            x: {
+                title: { display: true, text: 'Bits per Pixel (bpp)', color: '#64748b' },
+                grid: { color: 'rgba(255,255,255,0.04)' },
+                ticks: { color: '#64748b' },
+            },
+            y: {
+                title: { display: true, text: 'PSNR (dB)', color: '#64748b' },
+                grid: { color: 'rgba(255,255,255,0.04)' },
+                ticks: { color: '#64748b' },
+                min: 24, max: 42,
+            }
         }
     }
 });
+
+// ── Per-image table ───────────────────────────────────────────
+const kodakData = [
+    ['kodim01', 0.6820, 24.87],
+    ['kodim02', 0.5299, 29.51],
+    ['kodim03', 0.4159, 31.22],
+    ['kodim04', 0.5032, 29.70],
+    ['kodim05', 0.7339, 25.41],
+    ['kodim06', 0.5813, 26.44],
+    ['kodim07', 0.4772, 30.00],
+    ['kodim08', 0.7012, 22.70],
+    ['kodim09', 0.3987, 29.76],
+    ['kodim10', 0.4780, 28.94],
+    ['kodim11', 0.5640, 27.69],
+    ['kodim12', 0.4563, 29.29],
+    ['kodim13', 0.7419, 22.77],
+    ['kodim14', 0.6728, 27.49],
+    ['kodim15', 0.4480, 29.02],
+    ['kodim16', 0.4982, 29.51],
+    ['kodim17', 0.4860, 30.18],
+    ['kodim18', 0.6426, 26.83],
+    ['kodim19', 0.5226, 27.60],
+    ['kodim20', 0.3643, 29.00],
+    ['kodim21', 0.5012, 27.22],
+    ['kodim22', 0.5804, 28.77],
+    ['kodim23', 0.3758, 31.21],
+    ['kodim24', 0.6237, 25.73],
+];
+
+// JPEG Q=20 per image average for delta reference
+const jpegQ20AvgPsnr = 29.14;
+
+const ptbody = document.getElementById('perImageTable');
+kodakData.forEach(([name, bpp, psnr]) => {
+    const delta = psnr - jpegQ20AvgPsnr;
+    const deltaColor = delta >= 0 ? 'text-green-400' : 'text-red-400';
+    const deltaStr   = (delta >= 0 ? '+' : '') + delta.toFixed(2);
+    ptbody.innerHTML += `
+        <tr>
+            <td class="py-2 pr-4 text-slate-400">${name}</td>
+            <td class="py-2 pr-4 text-right text-blue-400">${bpp.toFixed(4)}</td>
+            <td class="py-2 text-right text-slate-200">${psnr.toFixed(2)} dB</td>
+            <td class="py-2 pl-4 text-right ${deltaColor}">${deltaStr} dB</td>
+        </tr>`;
+});
+
+// Average row
+ptbody.innerHTML += `
+    <tr class="border-t border-white/20 font-bold">
+        <td class="py-3 pr-4 text-white">Average</td>
+        <td class="py-3 pr-4 text-right text-blue-300">0.5408</td>
+        <td class="py-3 text-right text-white">27.95 dB</td>
+        <td class="py-3 pl-4 text-right text-red-400">−1.19 dB</td>
+    </tr>`;
 </script>
 
 </body>

@@ -57,7 +57,7 @@
         .blob-blue  { width: 600px; height: 600px; background: #3b82f6; top: -200px; left: -100px; }
         .blob-purple{ width: 500px; height: 500px; background: #a855f7; bottom: 0; right: -100px; }
 
-        main, nav, footer, #timerContainer { position: relative; z-index: 1; }
+        main, nav, footer { position: relative; z-index: 1; }
 
         /* Glass */
         .glass {
@@ -163,17 +163,12 @@
     </style>
 </head>
 
-<body onload="startTimer()">
+<body>
 
 <!-- Ambient blobs -->
 <div class="blob blob-blue"></div>
 <div class="blob blob-purple"></div>
 
-<!-- Timer -->
-<div id="timerContainer" class="fixed bottom-8 right-8 px-6 py-3 rounded-2xl flex items-center gap-3">
-    <i class="fas fa-hourglass-half text-blue-600 text-lg"></i>
-    <span id="displayTime" class="text-3xl font-black mono tracking-tighter">00:00</span>
-</div>
 
 <!-- Nav -->
 <nav class="fixed w-full z-50 glass border-b border-slate-800/50 px-8 py-4 flex justify-between items-center">
@@ -650,16 +645,6 @@
 </footer>
 
 <script>
-// ── Timer ──────────────────────────────────────────────────────
-let sec = 0;
-function startTimer() {
-    setInterval(() => {
-        sec++;
-        const m = String(Math.floor(sec / 60)).padStart(2, '0');
-        const s = String(sec % 60).padStart(2, '0');
-        document.getElementById('displayTime').textContent = `${m}:${s}`;
-    }, 1000);
-}
 
 // ── Architecture comparison table ─────────────────────────────
 const compareData = [
